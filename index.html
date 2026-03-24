@@ -246,6 +246,32 @@
     .rank-handle { display: none; }
     .rank-mobile-btns { display: flex; }
   }
+
+  /* ── QUESTION COUNT SELECTOR ── */
+  .qcount-wrap { margin-bottom: 32px; width: 100%; }
+  .qcount-heading { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--text-faint); text-transform: uppercase; margin-bottom: 14px; }
+  .qcount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .qcount-btn { background: rgba(20,12,5,0.7); border: 1px solid var(--border-mid); border-radius: 3px; padding: 14px 8px 12px; cursor: pointer; transition: background 0.25s, border-color 0.25s, box-shadow 0.25s; color: inherit; font-family: inherit; text-align: center; }
+  .qcount-btn:hover { border-color: var(--gold-dim); background: rgba(40,20,5,0.7); }
+  .qcount-btn.active { border-color: var(--gold); background: rgba(55,28,5,0.65); box-shadow: inset 0 0 0 1px rgba(201,162,39,0.18), 0 0 16px rgba(201,162,39,0.1); }
+  .qcount-num { font-family: 'Cinzel', serif; font-size: 22px; color: var(--text-dim); display: block; margin-bottom: 4px; transition: color 0.25s, text-shadow 0.25s; }
+  .qcount-btn.active .qcount-num { color: var(--gold-pale); text-shadow: 0 0 14px rgba(201,162,39,0.4); }
+  .qcount-tag { font-size: 10px; letter-spacing: 2px; color: var(--text-ghost); text-transform: uppercase; display: block; margin-bottom: 8px; transition: color 0.25s; }
+  .qcount-btn.active .qcount-tag { color: var(--gold-dim); }
+  .qcount-bar { height: 3px; background: var(--border-mid); border-radius: 2px; overflow: hidden; margin: 0 6px 6px; }
+  .qcount-fill { height: 100%; background: linear-gradient(90deg, var(--red-deep), var(--gold)); border-radius: 2px; }
+  .qcount-time { font-size: 11px; color: var(--text-ghost); font-style: italic; transition: color 0.25s; }
+  .qcount-btn.active .qcount-time { color: var(--text-faint); }
+  .qcount-note { font-size: 13px; color: var(--text-faint); font-style: italic; text-align: center; }
+  .qcount-note em { color: var(--gold-dim); font-style: normal; }
+  body.light .qcount-btn { background: rgba(228,212,185,0.6); }
+  body.light .qcount-btn:hover { background: rgba(215,194,162,0.8); }
+  body.light .qcount-btn.active { background: rgba(198,172,128,0.55); }
+  @media (max-width: 420px) {
+    .qcount-num { font-size: 18px; }
+    .qcount-tag { font-size: 9px; }
+    .qcount-time { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -290,7 +316,39 @@
     <p class="intro-sub">Questionário de Afinidade com RPG de Mesa</p>
     <div class="intro-divider"></div>
     <p class="intro-desc">Este instrumento mapeia seu perfil como jogador através de dimensões psicológicas e preferências lúdicas — sem mencionar sistemas diretamente.</p>
-    <p class="intro-note">Não há respostas certas ou erradas. Responda com base no que você <em>realmente prefere</em>, não no que acredita ser o "jogador ideal".<br><span>25 questões · 18–25 minutos</span></p>
+    <p class="intro-note">Não há respostas certas ou erradas. Responda com base no que você <em>realmente prefere</em>, não no que acredita ser o "jogador ideal".</p>
+
+    <div class="qcount-wrap">
+      <p class="qcount-heading">Quantas perguntas deseja responder?</p>
+      <div class="qcount-grid">
+        <button class="qcount-btn" data-count="10" onclick="selectCount(10)">
+          <span class="qcount-num">10</span>
+          <span class="qcount-tag">Rápido</span>
+          <div class="qcount-bar"><div class="qcount-fill" style="width:40%"></div></div>
+          <span class="qcount-time">~7 min</span>
+        </button>
+        <button class="qcount-btn" data-count="15" onclick="selectCount(15)">
+          <span class="qcount-num">15</span>
+          <span class="qcount-tag">Padrão</span>
+          <div class="qcount-bar"><div class="qcount-fill" style="width:60%"></div></div>
+          <span class="qcount-time">~12 min</span>
+        </button>
+        <button class="qcount-btn active" data-count="20" onclick="selectCount(20)">
+          <span class="qcount-num">20</span>
+          <span class="qcount-tag">Detalhado</span>
+          <div class="qcount-bar"><div class="qcount-fill" style="width:80%"></div></div>
+          <span class="qcount-time">~16 min</span>
+        </button>
+        <button class="qcount-btn" data-count="25" onclick="selectCount(25)">
+          <span class="qcount-num">25</span>
+          <span class="qcount-tag">Completo</span>
+          <div class="qcount-bar"><div class="qcount-fill" style="width:100%"></div></div>
+          <span class="qcount-time">~22 min</span>
+        </button>
+      </div>
+      <p class="qcount-note">Mais perguntas = <em>maior precisão</em> no seu perfil</p>
+    </div>
+
     <button class="btn-start" onclick="startQuiz()">INICIAR QUESTIONÁRIO</button>
   </div>
 </div>
@@ -780,10 +838,34 @@ const FALLBACKS = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// CURATED QUESTION SETS — ordered by discriminating power per count
+// Cobertura balanceada: todos os 5 sistemas e 7 seções representados
+// ═══════════════════════════════════════════════════════════════
+const QUESTION_SETS = {
+  //  10: 1-2 por seção, maior poder discriminante (multi/forced prioritários)
+  10: [1, 5, 9, 11, 13, 17, 18, 19, 22, 25],
+  //  15: cobre todas as 7 seções com 2-3 perguntas cada
+  15: [1, 2, 5, 6, 9, 10, 11, 13, 14, 17, 18, 19, 21, 22, 25],
+  //  20: ampla cobertura, apenas 5 perguntas menos discriminantes excluídas
+  20: [1, 2, 3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 21, 22, 24, 25],
+  //  25: questionário completo
+  25: null
+};
+
+// ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
 
 let current = 0, answers = {}, rankOrder = {}, dragSrc = null, currentPhrase = "";
+let selectedCount = 20;
+let activeQuestions = [];
+
+function selectCount(n) {
+  selectedCount = n;
+  document.querySelectorAll('.qcount-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.count) === n);
+  });
+}
 
 // ── Particles
 (function(){
@@ -862,6 +944,8 @@ function showScreen(id){
 
 function startQuiz(){
   current=0; answers={}; rankOrder={};
+  const ids = QUESTION_SETS[selectedCount];
+  activeQuestions = ids ? QUESTIONS.filter(q => ids.includes(q.id)) : [...QUESTIONS];
   showScreen('quiz');
   renderQuestion();
 }
@@ -872,7 +956,7 @@ function confirmRestart(){ closeConfirm(); showScreen('intro'); }
 // ── Scoring
 function calcScores(){
   const t={SD:0,SY:0,DD:0,VB:0,FU:0};
-  QUESTIONS.forEach(q=>{
+  activeQuestions.forEach(q=>{
     const a=answers[q.id];
     if(a===undefined||a===null)return;
     if(q.type==='multi'||q.type==='forced'){
@@ -895,23 +979,23 @@ function calcScores(){
 // ── Navigation
 function prevQ(){ if(current>0){current--;renderQuestion();} }
 function nextQ(){
-  if(current<QUESTIONS.length-1){current++;renderQuestion();}
+  if(current<activeQuestions.length-1){current++;renderQuestion();}
   else{showResult();}
 }
 
 function updateNav(){
-  const q=QUESTIONS[current];
+  const q=activeQuestions[current];
   const answered=answers[q.id]!==undefined;
   document.getElementById('btn-prev').disabled=current===0;
   document.getElementById('btn-next').disabled=!answered;
-  document.getElementById('btn-next').textContent=current===QUESTIONS.length-1?'Ver Resultado ✦':'Próxima →';
-  document.getElementById('progress-fill').style.width=`${((current)/QUESTIONS.length)*100}%`;
-  document.getElementById('quiz-counter').textContent=`${current+1} / ${QUESTIONS.length}`;
+  document.getElementById('btn-next').textContent=current===activeQuestions.length-1?'Ver Resultado ✦':'Próxima →';
+  document.getElementById('progress-fill').style.width=`${((current)/activeQuestions.length)*100}%`;
+  document.getElementById('quiz-counter').textContent=`${current+1} / ${activeQuestions.length}`;
 }
 
 // ── Render
 function renderQuestion(){
-  const q=QUESTIONS[current];
+  const q=activeQuestions[current];
   const sec=SECTIONS[q.sectionNum];
 
   if(q.type==='ranking'&&!rankOrder[q.id]){
@@ -979,8 +1063,8 @@ function renderQuestion(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function selectOption(letter){ answers[QUESTIONS[current].id]=letter; renderQuestion(); }
-function selectLikert(val){ answers[QUESTIONS[current].id]=val; renderQuestion(); }
+function selectOption(letter){ answers[activeQuestions[current].id]=letter; renderQuestion(); }
+function selectLikert(val){ answers[activeQuestions[current].id]=val; renderQuestion(); }
 
 function dragStart(e){ dragSrc=e.currentTarget.dataset.id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
 function dragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
@@ -990,7 +1074,7 @@ function dragDrop(e){
   const targetId=e.currentTarget.dataset.id;
   e.currentTarget.classList.remove('drag-over');
   if(!dragSrc||dragSrc===targetId)return;
-  const q=QUESTIONS[current];
+  const q=activeQuestions[current];
   const order=rankOrder[q.id];
   const fi=order.indexOf(dragSrc), ti=order.indexOf(targetId);
   order.splice(fi,1); order.splice(ti,0,dragSrc);
@@ -1003,7 +1087,7 @@ function dragDrop(e){
 }
 
 function rankMove(itemId, dir){
-  const q=QUESTIONS[current];
+  const q=activeQuestions[current];
   const order=rankOrder[q.id];
   const idx=order.indexOf(itemId);
   const newIdx=idx+dir;
